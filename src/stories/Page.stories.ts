@@ -1,14 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { within, userEvent } from '@storybook/testing-library';
+import type { Meta, StoryObj } from "@storybook/react";
+import { within, userEvent } from "@storybook/testing-library";
+import { http } from "msw";
 
-import { Page } from './Page';
+import { Page } from "./Page";
 
 const meta = {
-  title: 'Example/Page',
+  title: "Example/Page",
   component: Page,
   parameters: {
     // More on how to position stories at: https://storybook.js.org/docs/react/configure/story-layout
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
 } satisfies Meta<typeof Page>;
 
@@ -16,12 +17,28 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const LoggedOut: Story = {};
+LoggedOut.parameters = {
+  msw: {
+    handlers: [
+      http.get(
+        "/api/people/1/",
+        () =>
+          new Response(
+            JSON.stringify({
+              foo: "bar",
+              hello: 2000,
+            })
+          )
+      ),
+    ],
+  },
+};
 
 // More on interaction testing: https://storybook.js.org/docs/react/writing-tests/interaction-testing
 export const LoggedIn: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const loginButton = await canvas.getByRole('button', {
+    const loginButton = await canvas.getByRole("button", {
       name: /Log in/i,
     });
     await userEvent.click(loginButton);
